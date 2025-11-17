@@ -162,28 +162,28 @@ gdt:
     dw    KERN_CODE_BASE & 0xFFFF
     db    (KERN_CODE_BASE >> 16) & 0xFF
     db    0x9A ; P=1, DPL=00, S=1, Type=1010 (code r/x)
-    db    0x40 | ((KERN_CODE_LIMIT >> 16) & 0x0F) ; G=0, D=1, L=0, AVL=0
+    db    0x40 | ((KERN_CODE_TOP >> 16) & 0x0F) ; G=0, D=1, L=0, AVL=0
     db    (KERN_CODE_BASE >> 24) & 0xFF
   .kern_data:
     dw    KERN_DATA_TOP & 0xFFFF
     dw    KERN_DATA_BASE & 0xFFFF
     db    (KERN_DATA_BASE >> 16) & 0xFF
     db    0x92 ; P=1, DPL=00, S=1, Type=0010 (data r/w)
-    db    0x40 | ((KERN_DATA_LIMIT >> 16) & 0x0F) ; G=0, D=1, L=0, AVL=0
+    db    0x40 | ((KERN_DATA_TOP >> 16) & 0x0F) ; G=0, D=1, L=0, AVL=0
     db    (KERN_DATA_BASE >> 24) & 0xFF
   .user_code:
     dw    USER_CODE_TOP & 0xFFFF
     dw    USER_CODE_BASE & 0xFFFF
     db    (USER_CODE_BASE >> 16) & 0xFF
     db    0xFA ; P=1, DPL=11, S=1, Type=1010 (code r/x)
-    db    0x40 | ((USER_CODE_LIMIT >> 16) & 0x0F) ; G=0, D=1, L=0, AVL=0
+    db    0x40 | ((USER_CODE_TOP >> 16) & 0x0F) ; G=0, D=1, L=0, AVL=0
     db    (USER_CODE_BASE >> 24) & 0xFF
   .user_data:
     dw    USER_DATA_TOP & 0xFFFF
     dw    USER_DATA_BASE & 0xFFFF
     db    (USER_DATA_BASE >> 16) & 0xFF
     db    0xF2 ; P=1, DPL=11, S=1, Type=0010 (data r/w)
-    db    0x40 | ((USER_DATA_LIMIT >> 16) & 0x0F) ; G=0, D=1, L=0, AVL=0
+    db    0x40 | ((USER_DATA_TOP >> 16) & 0x0F) ; G=0, D=1, L=0, AVL=0
     db    (USER_DATA_BASE >> 24) & 0xFF
   .ptr:
     dw    $ - gdt - 1 ; Limit
