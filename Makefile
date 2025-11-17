@@ -4,7 +4,7 @@ boot.bin: boot.asm
 	nasm -f bin $(NASM_DEFINES) $< -o $@
 
 kern.o: kern.c
-	gcc -ffreestanding -nostdlib -m64 -c $< -o $@
+	gcc -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
 
 kern.bin: kern.o
 	ld -m elf_x86_64 -Ttext $(KERN_CODE_BASE) --oformat binary -o $@ $<
@@ -15,7 +15,7 @@ disk.img: boot.bin kern.bin
 	dd if=kern.bin of=$@ bs=512 count=$(KERN_CODE_SECTORS) seek=$(KERN_CODE_LBA) conv=notrunc
 
 qemu: disk.img
-	qemu-system-x86_64 -s -S -drive file=$<,format=raw -serial stdio -m 1M
+	qemu-system-x86_64 -s -S -drive file=$<,format=raw -serial stdio -m 1M -no-reboot
 
 clean:
 	rm -f samples/*.out samples/*.log *.bin *.img *.o
