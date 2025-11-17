@@ -74,8 +74,11 @@ load_segments:
 ;;
 load_segment:
     mov   ah, 0x42
+    mov   cx, 3
+  .loop:
     int   0x13
     jnc   .done
+    loop  .loop
     mov   si, str_error_bios_isr_13_42
     jmp   error
   .done:
