@@ -3,12 +3,19 @@ include config.mk
 boot.bin: boot.asm
 	nasm -f bin $(NASM_DEFINES) $< -o $@
 
-disk.img: boot.bin
+kern.o: kern.c
+	gcc -ffreestanding -nostdlib -m64 -c $< -o $@
+
+kern.bin: kern.o
+	ld -m elf_x86_64 -Ttext $(KERN_CODE_BASE) --oformat binary -o $@ $<
+
+disk.img: boot.bin kern.bin
 	dd if=/dev/zero of=$@ bs=512 count=2048
-	dd if=$< of=$@ bs=512 count=1 conv=notrunc
+	dd if=boot.bin of=$@ bs=512 count=1 conv=notrunc
+	dd if=kern.bin of=$@ bs=512 count=$(KERN_CODE_SECTORS) seek=$(KERN_CODE_LBA) conv=notrunc
 
 qemu: disk.img
 	qemu-system-x86_64 -s -S -drive file=$<,format=raw -serial stdio -m 1M
 
 clean:
-	rm -f samples/*.out samples/*.log *.bin *.img
+	rm -f samples/*.out samples/*.log *.bin *.img *.o
