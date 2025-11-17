@@ -1,2 +1,4 @@
 *.out
 *.log
+*.img
+*.bin
