@@ -250,3 +250,9 @@ start_protected_mode:
     mov   ss, ax
     mov   esp, KERN_DATA_TOP
     jmp   KERN_CODE_SEL:KERN_CODE_BASE
+
+;;
+;; MBR magic number so BIOS marks us bootable.
+;;
+times 510-($-$$) db 0
+dw 0xAA55
