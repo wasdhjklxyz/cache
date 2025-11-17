@@ -4,8 +4,6 @@
 ;;; SPDX-License-Identifier: BSD-2-Clause
 ;;;
 
-%include "config.inc"
-
 ;;
 ;; GDT selectors
 ;;
@@ -14,36 +12,6 @@ KERN_CODE_SEL  equ 0x08
 KERN_DATA_SEL  equ 0x10
 USER_CODE_SEL  equ 0x18 | 3 ; RPL=3
 USER_DATA_SEL  equ 0x20 | 3 ; RPL=3
-
-;;
-;; Derived values for DAP
-;;
-%define TO_SEGMENT(addr) ((addr) >> 4)
-%define TO_OFFSET(addr)  ((addr) & 0xF)
-KERN_CODE_SEG equ TO_SEGMENT(KERN_CODE_BASE)
-KERN_CODE_OFF equ TO_OFFSET(KERN_CODE_BASE)
-KERN_DATA_SEG equ TO_SEGMENT(KERN_DATA_BASE)
-KERN_DATA_OFF equ TO_OFFSET(KERN_DATA_BASE)
-USER_CODE_SEG equ TO_SEGMENT(USER_CODE_BASE)
-USER_CODE_OFF equ TO_OFFSET(USER_CODE_BASE)
-USER_DATA_SEG equ TO_SEGMENT(USER_DATA_BASE)
-USER_DATA_OFF equ TO_OFFSET(USER_DATA_BASE)
-
-;;
-;; Segment sizes and sector counts
-;;
-KERN_CODE_SECTORS equ (KERN_CODE_TOP + 512) / 512
-KERN_DATA_SECTORS equ (KERN_DATA_TOP + 512) / 512
-USER_CODE_SECTORS equ (USER_CODE_TOP + 512) / 512
-USER_DATA_SECTORS equ (USER_DATA_TOP + 512) / 512
-
-;;
-;; Disk LBA layout
-;;
-KERN_CODE_LBA equ 1
-KERN_DATA_LBA equ KERN_CODE_LBA + KERN_CODE_SECTORS
-USER_CODE_LBA equ KERN_DATA_LBA + KERN_DATA_SECTORS
-USER_DATA_LBA equ USER_CODE_LBA + USER_CODE_SECTORS
 
 ;;
 ;; CPU begins execution in 16-bit real mode with the BIOS loading us at 0x7C00.
