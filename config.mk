@@ -13,10 +13,10 @@ USER_CODE_TOP  := 0x03FFF
 USER_DATA_BASE := 0x05000
 USER_DATA_TOP  := 0x02BFF
 
-KERN_CODE_SECTORS := $(shell echo $$((($(KERN_CODE_TOP) + 512) / 512)))
-KERN_DATA_SECTORS := $(shell echo $$((($(KERN_DATA_TOP) + 512) / 512)))
-USER_CODE_SECTORS := $(shell echo $$((($(USER_CODE_TOP) + 512) / 512)))
-USER_DATA_SECTORS := $(shell echo $$((($(USER_DATA_TOP) + 512) / 512)))
+KERN_CODE_SECTORS := $(shell echo $$((($(KERN_CODE_TOP) - $(KERN_CODE_BASE)) / 512)))
+KERN_DATA_SECTORS := $(shell echo $$((($(KERN_DATA_TOP) - $(KERN_CODE_BASE)) / 512)))
+USER_CODE_SECTORS := $(shell echo $$((($(USER_CODE_TOP) - $(KERN_CODE_BASE)) / 512)))
+USER_DATA_SECTORS := $(shell echo $$((($(USER_DATA_TOP) - $(KERN_CODE_BASE)) / 512)))
 
 KERN_CODE_SEG := $(shell echo $$(($(KERN_CODE_BASE) >> 4)))
 KERN_CODE_OFF := $(shell echo $$(($(KERN_CODE_BASE) & 0xF)))
