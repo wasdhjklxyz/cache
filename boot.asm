@@ -89,7 +89,7 @@ enter_protected_mode:
     mov     eax, cr0
     or      al, 1
     mov     cr0, eax
-    jmp     KERN_CODE_SEL:start_protected_mode
+    jmp     KERN_CODE_SEL:KERN_CODE_BASE
 
 ;;
 ;; This procedure prints string to the screen using BIOS INT 10h AH=0Eh
@@ -174,22 +174,6 @@ str_error_bios_isr_13_41:
     db    0x0D, 0x0A, "Error: BIOS INT 13h AH=41h: Extensions not supported", 0
 str_error_bios_isr_13_42:
     db    0x0D, 0x0A, "Error: BIOS INT 13h AH=42h: Failed to read drive", 0
-
-;;
-;; We jump here after entering protected mode. First, we must reload our segment
-;; registers. Note that CS has already been set due to the far jump performed to
-;; get here. After this, we far jump to our kernel entry point.
-;;
-    [bits 32]
-start_protected_mode:
-    mov   ax, KERN_DATA_SEL
-    mov   ds, ax
-    mov   es, ax
-    mov   fs, ax
-    mov   gs, ax
-    mov   ss, ax
-    mov   esp, KERN_DATA_TOP
-    jmp   KERN_CODE_SEL:KERN_CODE_BASE
 
 ;;
 ;; MBR magic number so BIOS marks us bootable.

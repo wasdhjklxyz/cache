@@ -3,11 +3,14 @@ include config.mk
 boot.bin: boot.asm
 	nasm -f bin $(NASM_DEFINES) $< -o $@
 
+kern_entry.o: kern_entry.asm
+	nasm -f elf64 $< -o $@
+
 kern.o: kern.c
 	gcc -masm=intel -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
 
-kern.bin: kern.o
-	ld -m elf_x86_64 -Ttext $(KERN_CODE_BASE) --oformat binary -o $@ $<
+kern.bin: kern_entry.o kern.o
+	ld -m elf_x86_64 -Ttext $(KERN_CODE_BASE) --oformat binary -o $@ $^
 
 disk.img: boot.bin kern.bin
 	dd if=/dev/zero of=$@ bs=512 count=2048
