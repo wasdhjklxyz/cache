@@ -57,12 +57,6 @@ check_disk_read_exts:
 load_segments:
     mov   si, dap.kern_code
     call  load_segment
-    mov   si, dap.kern_data
-    call  load_segment
-    mov   si, dap.user_code
-    call  load_segment
-    mov   si, dap.user_data
-    call  load_segment
     jmp   enter_protected_mode
 
 ;;
@@ -175,26 +169,6 @@ dap:
     dw    KERN_CODE_OFF
     dw    KERN_CODE_SEG
     dq    KERN_CODE_LBA
-    align 4
-  .kern_data:
-    db    0x10, 0x00
-    dw    KERN_DATA_SECTORS
-    dw    KERN_DATA_OFF
-    dw    KERN_DATA_SEG
-    dq    KERN_DATA_LBA
-  .user_code:
-    db    0x10, 0x00
-    dw    USER_CODE_SECTORS
-    dw    USER_CODE_OFF
-    dw    USER_CODE_SEG
-    dq    USER_CODE_LBA
-    align 4
-  .user_data:
-    db    0x10, 0x00
-    dw    USER_DATA_SECTORS
-    dw    USER_DATA_OFF
-    dw    USER_DATA_SEG
-    dq    USER_DATA_LBA
 
 str_error_bios_isr_13_41:
     db    0x0D, 0x0A, "Error: BIOS INT 13h AH=41h: Extensions not supported", 0
