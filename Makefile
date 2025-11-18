@@ -4,7 +4,7 @@ boot.bin: boot.asm
 	nasm -f bin $(NASM_DEFINES) $< -o $@
 
 kern.o: kern.c
-	gcc -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
+	gcc -masm=intel -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
 
 kern.bin: kern.o
 	ld -m elf_x86_64 -Ttext $(KERN_CODE_BASE) --oformat binary -o $@ $<
