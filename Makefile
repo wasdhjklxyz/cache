@@ -4,8 +4,6 @@
 # SPDX-License-Identifier: BSD-2-Clause
 #
 
-include config.mk
-
 KERN_OFFSET := 0x7E00
 
 boot.bin: boot.asm
