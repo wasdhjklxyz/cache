@@ -4,14 +4,7 @@
 ;;; SPDX-License-Identifier: BSD-2-Clause
 ;;;
 
-;;
-;; GDT selectors
-;;
-NULL_SEL       equ 0x00
-KERN_CODE_SEL  equ 0x08
-KERN_DATA_SEL  equ 0x10
-USER_CODE_SEL  equ 0x18 | 3 ; RPL=3
-USER_DATA_SEL  equ 0x20 | 3 ; RPL=3
+%include "gdt_sel.inc"
 
 ;;
 ;; CPU begins execution in 16-bit real mode with the BIOS loading us at 0x7C00.

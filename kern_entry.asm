@@ -1,3 +1,5 @@
+%include "gdt_sel.inc"
+
 [bits 32]
 section .text
 global  _start
@@ -9,7 +11,7 @@ extern  kern_start
 ;; get here. After this, we far jump to our kernel entry point.
 ;;
 _start:
-    mov   ax, 0x10 ; FIXME: Should be KERN_DATA_SEL
+    mov   ax, KERN_DATA_SEL
     mov   ds, ax
     mov   es, ax
     mov   fs, ax
