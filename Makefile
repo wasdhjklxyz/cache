@@ -1,3 +1,9 @@
+#
+# Copyright (c) 2025, uiop <uiop@wasdhjkl.xyz>
+#
+# SPDX-License-Identifier: BSD-2-Clause
+#
+
 include config.mk
 
 boot.bin: boot.asm
