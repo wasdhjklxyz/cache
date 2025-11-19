@@ -4,11 +4,8 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-extern void setup_paging(void);
-
 void kern_start(void) {
-  setup_paging();
-  asm volatile("mov eax, 0xDEADBEEF");
+  asm volatile("mov rax, 0xDEADBEEF12345678");
   while (1) {
   }
 }
