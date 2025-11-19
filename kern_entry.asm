@@ -84,7 +84,7 @@ _start:
     wrmsr
 
     mov   eax, cr0
-    or    eax, 0x80000000 ; CR0.PG, CR0.PE
+    or    eax, 0x80000000 ; CR0.PG
     mov   cr0, eax
 
     jmp   KERN_CODE_SEL:lmode_start
