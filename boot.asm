@@ -153,28 +153,28 @@ gdt:
     dw    0
     db    0
     db    0x9A ; P=1, DPL=00, S=1, Type=1010 (code r/x)
-    db    0x4F ; G=0, D=1, L=0, AVL=0
+    db    0xCF ; G=1, D=1, L=0, AVL=0
     db    0
   .kern_data:
     dw    0xFFFF
     dw    0
     db    0
     db    0x92 ; P=1, DPL=00, S=1, Type=0010 (data r/w)
-    db    0x4F ; G=0, D=1, L=0, AVL=0
+    db    0xCF ; G=1, D=1, L=0, AVL=0
     db    0
   .user_code:
     dw    0xFFFF
     dw    0
     db    0
     db    0xFA ; P=1, DPL=11, S=1, Type=1010 (code r/x)
-    db    0x4F ; G=0, D=1, L=0, AVL=0
+    db    0xCF ; G=1, D=1, L=0, AVL=0
     db    0
   .user_data:
     dw    0xFFFF
     dw    0
     db    0
     db    0xF2 ; P=1, DPL=11, S=1, Type=0010 (data r/w)
-    db    0x4F ; G=0, D=1, L=0, AVL=0
+    db    0xCF ; G=1, D=1, L=0, AVL=0
     db    0
   .ptr:
     dw    $ - gdt - 1 ; Limit
