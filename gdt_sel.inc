@@ -4,8 +4,8 @@
 ;;; SPDX-License-Identifier: BSD-2-Clause
 ;;;
 
-%ifndef GDT_SELF_INC
-%define GDT_SELF_INC
+%ifndef GDT_SEL_INC
+%define GDT_SEL_INC
 
 NULL_SEL       equ 0x00
 KERN_CODE_SEL  equ 0x08
