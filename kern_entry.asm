@@ -9,6 +9,7 @@
 [bits 32]
 section .text
 global  _start
+global setup_paging
 extern  kern_start
 
 ;;
@@ -28,3 +29,13 @@ _start:
   .hang:
     hlt
     jmp   .hang
+
+setup_paging:
+    ret
+
+section .bss
+align 4096
+pml4t: resb 4096
+pdpt:  resb 4096
+pdt:   resb 4096
+pt:    resb 4096
