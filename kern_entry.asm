@@ -46,11 +46,11 @@ _start:
     mov   ecx, PTT_SIZE
     rep   stosd
     mov   edi, cr3
-    mov   dword [edi], PDPT_ADDR & (PTT_P | PTT_RW)
+    mov   dword [edi], PDPT_ADDR | PTT_P | PTT_RW
     mov   edi, PDPT_ADDR
-    mov   dword [edi], PDT_ADDR & (PTT_P | PTT_RW)
+    mov   dword [edi], PDT_ADDR | PTT_P | PTT_RW
     mov   edi, PDT_ADDR
-    mov   dword [edi], PT_ADDR & (PTT_P | PTT_RW)
+    mov   dword [edi], PT_ADDR | PTT_P | PTT_RW
     mov   edi, PT_ADDR
     mov   ebx, PTT_P | PTT_RW
     mov   ecx, PTT_ENTS
