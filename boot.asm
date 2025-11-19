@@ -38,38 +38,25 @@ check_disk_read_exts:
     mov   ah, 0x41
     mov   bx, 0x55AA ; Magic
     int   0x13
-    jnc   load_segments
+    jnc   load_kernel
     mov   si, str_error_bios_isr_13_41
     jmp   error
 
 ;;
 ;; If extensions are installed, we can use BIOS interrupt call 13h AH=42h to
-;; load the kernel and user (sample) segments. We do this before switching to
-;; protected mode since we'll lose access to the BIOS ISRs.
+;; load the kernel. We do this before switching to protected mode since we'll
+;; lose access to the BIOS ISRs.
 ;;
-load_segments:
+load_kernel:
     mov   si, dap.kern_code
-    call  load_segment
-    jmp   enter_protected_mode
-
-;;
-;; If extensions are installed, we can use BIOS interrupt call 13h AH=42h to
-;; load the kernel and user (sample) segments. We do this before switching to
-;; protected mode since we'll lose access to the BIOS ISRs.
-;;
-;; It is assumed SI points to the DAP to load before this procedure is called.
-;;
-load_segment:
     mov   ah, 0x42
     mov   cx, 3
   .loop:
     int   0x13
-    jnc   .done
+    jnc   enter_protected_mode
     loop  .loop
     mov   si, str_error_bios_isr_13_42
     jmp   error
-  .done:
-    ret
 
 ;;
 ;; Now that we have taken advantage of the BIOS ISRs, we enter protected mode.
