@@ -120,7 +120,7 @@ enter_protected_mode:
     mov     eax, cr0
     or      al, 1
     mov     cr0, eax
-    jmp     KERN_CODE_SEL:KERN_OFFSET
+    jmp     BOOT_CODE_SEL:KERN_OFFSET
 
 ;;
 ;; This procedure prints string to the screen using BIOS INT 10h AH=0Eh
@@ -153,7 +153,7 @@ gdt:
     dw    0
     db    0
     db    0x9A ; P=1, DPL=00, S=1, Type=1010 (code r/x)
-    db    0xCF ; G=1, D=1, L=0, AVL=0
+    db    0xAF ; G=1, D=0, L=1, AVL=0
     db    0
   .kern_data:
     dw    0xFFFF
@@ -167,13 +167,20 @@ gdt:
     dw    0
     db    0
     db    0xFA ; P=1, DPL=11, S=1, Type=1010 (code r/x)
-    db    0xCF ; G=1, D=1, L=0, AVL=0
+    db    0xAF ; G=1, D=0, L=1, AVL=0
     db    0
   .user_data:
     dw    0xFFFF
     dw    0
     db    0
     db    0xF2 ; P=1, DPL=11, S=1, Type=0010 (data r/w)
+    db    0xCF ; G=1, D=1, L=0, AVL=0
+    db    0
+  .boot_code:
+    dw    0xFFFF
+    dw    0
+    db    0
+    db    0x9A ; P=1, DPL=00, S=1, Type=1010 (code r/x)
     db    0xCF ; G=1, D=1, L=0, AVL=0
     db    0
   .ptr:
