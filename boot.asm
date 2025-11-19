@@ -120,7 +120,7 @@ enter_protected_mode:
     mov     eax, cr0
     or      al, 1
     mov     cr0, eax
-    jmp     KERN_CODE_SEL:KERN_CODE_BASE
+    jmp     KERN_CODE_SEL:KERN_OFFSET
 
 ;;
 ;; This procedure prints string to the screen using BIOS INT 10h AH=0Eh
@@ -149,33 +149,33 @@ gdt:
   .null:
     dq    0
   .kern_code:
-    dw    KERN_CODE_TOP & 0xFFFF
-    dw    KERN_CODE_BASE & 0xFFFF
-    db    (KERN_CODE_BASE >> 16) & 0xFF
+    dw    0xFFFF
+    dw    0
+    db    0
     db    0x9A ; P=1, DPL=00, S=1, Type=1010 (code r/x)
-    db    0x40 | ((KERN_CODE_TOP >> 16) & 0x0F) ; G=0, D=1, L=0, AVL=0
-    db    (KERN_CODE_BASE >> 24) & 0xFF
+    db    0x4F ; G=0, D=1, L=0, AVL=0
+    db    0
   .kern_data:
-    dw    KERN_DATA_TOP & 0xFFFF
-    dw    KERN_DATA_BASE & 0xFFFF
-    db    (KERN_DATA_BASE >> 16) & 0xFF
+    dw    0xFFFF
+    dw    0
+    db    0
     db    0x92 ; P=1, DPL=00, S=1, Type=0010 (data r/w)
-    db    0x40 | ((KERN_DATA_TOP >> 16) & 0x0F) ; G=0, D=1, L=0, AVL=0
-    db    (KERN_DATA_BASE >> 24) & 0xFF
+    db    0x4F ; G=0, D=1, L=0, AVL=0
+    db    0
   .user_code:
-    dw    USER_CODE_TOP & 0xFFFF
-    dw    USER_CODE_BASE & 0xFFFF
-    db    (USER_CODE_BASE >> 16) & 0xFF
+    dw    0xFFFF
+    dw    0
+    db    0
     db    0xFA ; P=1, DPL=11, S=1, Type=1010 (code r/x)
-    db    0x40 | ((USER_CODE_TOP >> 16) & 0x0F) ; G=0, D=1, L=0, AVL=0
-    db    (USER_CODE_BASE >> 24) & 0xFF
+    db    0x4F ; G=0, D=1, L=0, AVL=0
+    db    0
   .user_data:
-    dw    USER_DATA_TOP & 0xFFFF
-    dw    USER_DATA_BASE & 0xFFFF
-    db    (USER_DATA_BASE >> 16) & 0xFF
+    dw    0xFFFF
+    dw    0
+    db    0
     db    0xF2 ; P=1, DPL=11, S=1, Type=0010 (data r/w)
-    db    0x40 | ((USER_DATA_TOP >> 16) & 0x0F) ; G=0, D=1, L=0, AVL=0
-    db    (USER_DATA_BASE >> 24) & 0xFF
+    db    0x4F ; G=0, D=1, L=0, AVL=0
+    db    0
   .ptr:
     dw    $ - gdt - 1 ; Limit
     dd    gdt         ; Base
@@ -197,9 +197,9 @@ dap:
   .kern_code:
     db    0x10, 0x00
     dw    1 ; FIXME: Temporary 1 sector load "some BIOS max is 127"
-    dw    KERN_CODE_OFF
-    dw    KERN_CODE_SEG
-    dq    KERN_CODE_LBA
+    dw    KERN_OFFSET
+    dw    0
+    dq    1
 
 str_error_bios_isr_13_41:
     db    0x0D, 0x0A, "Error: BIOS INT 13h AH=41h: Extensions not supported", 0

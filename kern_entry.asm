@@ -23,7 +23,7 @@ _start:
     mov   fs, ax
     mov   gs, ax
     mov   ss, ax
-    mov   esp, KERN_DATA_TOP
+    mov   esp, KERN_OFFSET
     call  kern_start
   .hang:
     hlt
