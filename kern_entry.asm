@@ -17,7 +17,7 @@ _start:
     mov   fs, ax
     mov   gs, ax
     mov   ss, ax
-    mov   esp, 0x2FFFF ; FIXME: Should be KERN_DATA_TOP
+    mov   esp, KERN_DATA_TOP
     call  kern_start
   .hang:
     hlt
