@@ -47,50 +47,32 @@ _start:
     mov   edi, PML4T_ADDR
     mov   cr3, edi
     xor   eax, eax
-    mov   ecx, 0x6000 / 4 ; 24KB / 4 bytes (PML4 + PDPT + 4 PDTs)
+    mov   ecx, 0x3000 / 4 ; 12KB (PML4 + PDPT + PDT) / 4 bytes
     rep   stosd
 
     ;;
     ;; PML4[0] -> PDPT
-    ;; PML4[511] same as PML4[0]
     ;;
     mov   edi, PML4T_ADDR
     mov   dword [edi], PDPT_ADDR | PTT_P | PTT_RW
-    mov   dword [edi + 511 * 8], PDPT_ADDR | PTT_P | PTT_RW
 
     ;;
-    ;; PDPT[0] -> PDT[0] (1GB identity for bootstrap)
-    ;; PDPT[510-511] -> PDT[1-2] (kernel -2GB to -1GB)
+    ;; PDPT[0] -> PDT
     ;;
     mov   edi, PDPT_ADDR
     mov   dword [edi], PDT_ADDR | PTT_P | PTT_RW
-    mov   dword [edi + 510 * 8], (PDT_ADDR + PTT_SIZE) | PTT_P | PTT_RW
-    mov   dword [edi + 511 * 8], (PDT_ADDR + PTT_SIZE * 2) | PTT_P | PTT_RW
 
     ;;
-    ;; PDT[0] with first 1GB identity mapped (enough for bootstrap)
+    ;; PDT with first 1GB identity mapped with 2MB pages
     ;;
     mov   edi, PDT_ADDR
-    xor   ebx, ebx
-    or    ebx, PTT_P | PTT_RW | PTT_PS
+    mov   ebx, PTT_P | PTT_RW | PTT_PS
     mov   ecx, PTT_ENTS ; 512 entries = 1GB
   .identity_loop:
     mov   [edi], ebx
     add   ebx, 0x200000 ; Next 2MB phys frame
     add   edi, 8
     loop  .identity_loop
-
-    ;;
-    ;; PDT[1-2] with kernel at high addrs (2GB)
-    ;;
-    mov   edi, PDT_ADDR + PTT_SIZE
-    mov   ebx, 0x100000 | PTT_P | PTT_RW | PTT_PS
-    mov   ecx, PTT_ENTS * 2
-  .kernel_loop:
-    mov   [edi], ebx
-    add   ebx, 0x200000 ; Next 2MB phys frame
-    add   edi, 8
-    loop  .kernel_loop
 
     mov   ecx, 0xC0000080
     rdmsr
