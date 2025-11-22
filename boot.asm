@@ -203,7 +203,7 @@ dap:
     align 4
   .kern_code:
     db    0x10, 0x00
-    dw    1 ; FIXME: Temporary 1 sector load "some BIOS max is 127"
+    dw    KERN_SECTORS ; FIXME: Not confirmed to fit in 2 bytes...
     dw    KERN_OFFSET
     dw    0
     dq    1
