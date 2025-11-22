@@ -10,7 +10,7 @@ boot.bin: boot.asm
 	nasm -f bin -DKERN_OFFSET=$(KERN_OFFSET) $< -o $@
 
 kern_entry.o: kern_entry.asm
-	nasm -f elf64 -DKERN_OFFSET=$(KERN_OFFSET) $< -o $@
+	nasm -f elf64 $< -o $@
 
 kern.o: kern.c
 	gcc -masm=intel -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@

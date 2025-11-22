@@ -18,6 +18,8 @@ PTT_P     equ 1
 PTT_RW    equ 2
 PTT_PS    equ (1 << 7)
 
+STACK_TOP equ 0x200000 ; 2MB
+
 [bits 32]
 section .text
 global  _start
@@ -35,7 +37,7 @@ _start:
     mov   fs, ax
     mov   gs, ax
     mov   ss, ax
-    mov   esp, KERN_OFFSET
+    mov   esp, STACK_TOP
 
     mov   eax, cr4
     or    eax, 0x20 ; CR4.PAE
@@ -87,7 +89,7 @@ _start:
 
 [bits 64]
 lmode_start:
-    mov   rsp, KERN_OFFSET ; FIXME
+    mov   rsp, STACK_TOP
     call  kern_start
   .hang:
     hlt
