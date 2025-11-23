@@ -21,8 +21,8 @@
 #define PTT_US 0x04
 #define PDTE_USER (USER_OFFSET / 0x200000) // Each entry maps 2MB
 #define USER_STACK (USER_OFFSET + 0x100000)
-#define USER_CODE_SEL (0x18 | 3) // RPL=3 (FIXME: Should use gdt_sel.inc btw)
-#define USER_DATA_SEL (0x20 | 3) // RPL=3 (FIXME: Should use gdt_sel.inc btw)
+#define USER_DATA_SEL (0x18 | 3) // RPL=3 (FIXME: Should use gdt_sel.inc btw)
+#define USER_CODE_SEL (0x20 | 3) // RPL=3 (FIXME: Should use gdt_sel.inc btw)
 #define KERN_CODE_SEL 0x08
 
 #define MSR_EFER 0xC0000080
