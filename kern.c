@@ -4,12 +4,27 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+/* NOTE: This is so my stupid fuck LSP doesnt bitch about these being undefed */
+#ifndef USER_LBA
+#define USER_LBA 0
+#endif // USER_LBA
+#ifndef USER_SECTORS
+#define USER_SECTORS 0
+#endif // USER_SECTORS
+#ifndef USER_OFFSET
+#define USER_OFFSET 0
+#endif // USER_OFFSET
+
 #define COM1 0x3F8
 #define ATA_IO 0x1F0
+#define PDT_ADDR 0x3000
+#define PTT_US 0x04
+#define PDTE_USER (USER_OFFSET / 0x200000) // Each entry maps 2MB
 
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
+typedef unsigned long uint64_t;
 
 static inline void outb(uint16_t port, uint8_t val) {
   asm volatile("outb %0, %1" : : "a"(val), "Nd"(port));
@@ -67,10 +82,17 @@ void ata_pio_read(uint32_t lba, uint8_t sectors, uint16_t *buf) {
   }
 }
 
+void setup_user_pdte(void) {
+  uint64_t *pdt = (uint64_t *)PDT_ADDR;
+  pdt[PDTE_USER] |= PTT_US;
+}
+
 void kern_start(void) {
   serial_init();
   serial_puts("hello world\n");
   ata_pio_read(USER_LBA, USER_SECTORS, (uint16_t *)USER_OFFSET);
   serial_puts("user load done\n");
+  setup_user_pdte();
+  serial_puts("user pdte done\n");
   while (1) asm volatile("hlt");
 }
