@@ -28,7 +28,9 @@
 #define MSR_EFER 0xC0000080
 #define MSR_STAR 0xC0000081
 #define MSR_LSTAR 0xC0000082
-#define EFER_SCE (1 << 0) // Syscall extensions
+#define MSR_SFMASK 0xC0000084
+#define EFER_SCE (1 << 0)  // Syscall extensions
+#define SFMASK_IF (1 << 9) // Interrupts
 
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
@@ -210,6 +212,8 @@ void enable_syscall_sysret(void) {
   wrmsr(MSR_STAR, star);
 
   wrmsr(MSR_LSTAR, (uint64_t)syscall_entry);
+
+  wrmsr(MSR_SFMASK, SFMASK_IF);
 }
 
 void syscall_entry(void) { serial_puts("syscall!!!!!"); }
