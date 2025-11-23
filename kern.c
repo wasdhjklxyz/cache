@@ -188,10 +188,6 @@ void kern_start(void) {
   serial_puts("user pdte done\n");
   setup_idt();
   serial_puts("IDT setup\n");
-  volatile uint64_t *fuck = (uint64_t *)0xDEADBEEF;
-  uint64_t shit = *fuck;
-  serial_puts("erm\n");
-  (void)shit;
-  // enter_user_mode();
+  enter_user_mode();
   while (1) asm volatile("hlt");
 }
