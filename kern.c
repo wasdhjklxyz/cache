@@ -20,6 +20,9 @@
 #define PDT_ADDR 0x3000
 #define PTT_US 0x04
 #define PDTE_USER (USER_OFFSET / 0x200000) // Each entry maps 2MB
+#define USER_STACK (USER_OFFSET + 0x100000)
+#define USER_CODE_SEL (0x18 | 3) // RPL=3 (FIXME: Should use gdt_sel.inc btw)
+#define USER_DATA_SEL (0x20 | 3) // RPL=3 (FIXME: Should use gdt_sel.inc btw)
 
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
@@ -103,6 +106,24 @@ void setup_user_pdte(void) {
   pdt[PDTE_USER] |= PTT_US;
 }
 
+void enter_user_mode(void) {
+  asm volatile("movq %0, %%rax\n\t"
+               "movw %%ax, %%ds\n\t"
+               "movw %%ax, %%es\n\t"
+               "movw %%ax, %%fs\n\t"
+               "movw %%ax, %%gs\n\t"
+               "pushq %0\n\t"
+               "pushq %1\n\t"
+               "pushq $0x202\n\t"
+               "pushq %2\n\t"
+               "pushq %3\n\t"
+               "iretq"
+               :
+               : "r"((uint64_t)USER_DATA_SEL), "r"((uint64_t)USER_STACK),
+                 "r"((uint64_t)USER_CODE_SEL), "r"((uint64_t)USER_OFFSET)
+               : "rax", "memory");
+}
+
 void kern_start(void) {
   serial_init();
   serial_puts("hello world\n");
@@ -111,5 +132,6 @@ void kern_start(void) {
   serial_puts("user load done\n");
   setup_user_pdte();
   serial_puts("user pdte done\n");
+  enter_user_mode();
   while (1) asm volatile("hlt");
 }
