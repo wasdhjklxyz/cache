@@ -185,8 +185,8 @@ void isr(void) { serial_puts("ISR!!!!!!!!!!!1!\n"); }
 void setup_idt(void) {
   uint64_t pf_isr = (uint64_t)isr;
   idt[0x0E].offset_1 = pf_isr & 0xFFFF;
-  idt[0x0E].offset_2 = pf_isr & 0xFFFF0000;
-  idt[0x0E].offset_3 = pf_isr & 0xFFFF00000000;
+  idt[0x0E].offset_2 = (pf_isr >> 16) & 0xFFFF;
+  idt[0x0E].offset_3 = (pf_isr >> 32) & 0xFFFF;
   idt[0x0E].selector = KERN_CODE_SEL;
   idt[0x0E].ist = 0;                // Interrupt stack table not used
   idt[0x0E].type_attributes = 0xCE; // P=1, DPL=11, 64-bit interrupt gate
