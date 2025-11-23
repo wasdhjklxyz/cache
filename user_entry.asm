@@ -17,5 +17,4 @@ _start:
     xor   rsi, rsi ; argv=NULL
     call  main
   .hang:
-    hlt
     jmp   .hang
