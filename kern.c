@@ -64,6 +64,22 @@ void serial_puts(const char *str) {
   }
 }
 
+void serial_putu32(uint32_t val) {
+  int i;
+  uint8_t n;
+  char str[11];
+
+  str[0] = '0';
+  str[1] = 'x';
+  for (i = 7; i >= 0; i--, val >>= 4) {
+    n = val & 0xF;
+    str[i + 2] = n < 10 ? n + '0' : n + 'A' - 10;
+  }
+  str[10] = '\n';
+
+  serial_puts(str);
+}
+
 void ata_pio_read(uint32_t lba, uint8_t sectors, uint16_t *buf) {
   while (inb(ATA_IO + 7) & 0x80); // Wait for drive to be ready
 
@@ -90,6 +106,7 @@ void setup_user_pdte(void) {
 void kern_start(void) {
   serial_init();
   serial_puts("hello world\n");
+  serial_putu32((uint32_t)USER_OFFSET);
   ata_pio_read(USER_LBA, USER_SECTORS, (uint16_t *)USER_OFFSET);
   serial_puts("user load done\n");
   setup_user_pdte();
