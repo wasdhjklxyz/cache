@@ -26,12 +26,16 @@
 #define KERN_CODE_SEL 0x08
 
 #define MSR_EFER 0xC0000080
+#define MSR_STAR 0xC0000081
+#define MSR_LSTAR 0xC0000082
 #define EFER_SCE (1 << 0) // Syscall extensions
 
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
 typedef unsigned long uint64_t;
+
+extern void syscall_entry(void);
 
 // #PF -> 0x0E
 // #GP -> 0x0D
@@ -196,11 +200,19 @@ void enter_user_mode(void) {
 }
 
 void enable_syscall_sysret(void) {
-  /* NOTE: Without this, syscall and sysret trigger #UD */
   uint64_t efer = rdmsr(MSR_EFER);
   efer |= EFER_SCE;
   wrmsr(MSR_EFER, efer);
+
+  uint64_t star = 0;
+  star |= ((uint64_t)KERN_CODE_SEL << 32);
+  star |= ((uint64_t)(USER_CODE_SEL - 16) << 48);
+  wrmsr(MSR_STAR, star);
+
+  wrmsr(MSR_LSTAR, (uint64_t)syscall_entry);
 }
+
+void syscall_entry(void) { serial_puts("syscall!!!!!"); }
 
 void kern_start(void) {
   serial_init();
