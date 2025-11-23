@@ -228,7 +228,7 @@ void enter_user_mode(void) {
  *  CPL = 3                          # Now in user mode
  */
 void enable_syscall_sysret(void) {
-  swapgs_data.kern_rsp = (uint64_t)&syscall_stack[0x2000];
+  swapgs_data.kern_rsp = (uint64_t)&syscall_stack[0x1000];
   swapgs_data.user_rsp = 0; // Will be set on syscall entry
 
   wrmsr(MSR_GS_BASE, (uint64_t)&swapgs_data);
