@@ -16,6 +16,7 @@ PTTE_SIZE equ 8
 
 PTT_P     equ 1
 PTT_RW    equ 2
+PTT_US    equ 4
 PTT_PS    equ (1 << 7)
 
 STACK_TOP equ 0x200000 ; 2MB
@@ -56,13 +57,13 @@ _start:
     ;; PML4[0] -> PDPT
     ;;
     mov   edi, PML4T_ADDR
-    mov   dword [edi], PDPT_ADDR | PTT_P | PTT_RW
+    mov   dword [edi], PDPT_ADDR | PTT_US | PTT_P | PTT_RW
 
     ;;
     ;; PDPT[0] -> PDT
     ;;
     mov   edi, PDPT_ADDR
-    mov   dword [edi], PDT_ADDR | PTT_P | PTT_RW
+    mov   dword [edi], PDT_ADDR | PTT_US | PTT_P | PTT_RW
 
     ;;
     ;; PDT with first 1GB identity mapped with 2MB pages
