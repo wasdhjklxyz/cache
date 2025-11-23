@@ -25,6 +25,9 @@
 #define USER_DATA_SEL (0x20 | 3) // RPL=3 (FIXME: Should use gdt_sel.inc btw)
 #define KERN_CODE_SEL 0x08
 
+#define MSR_EFER 0xC0000080
+#define EFER_SCE (1 << 0) // Syscall extensions
+
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
@@ -66,6 +69,20 @@ static inline uint32_t inl(uint16_t port) {
   uint32_t ret;
   asm volatile("inl %1, %0" : "=a"(ret) : "Nd"(port));
   return ret;
+}
+
+/* FIXME: Use __rdmsr builtin? */
+static inline uint64_t rdmsr(uint64_t msr) {
+  uint32_t low, high;
+  asm volatile("rdmsr" : "=a"(low), "=d"(high) : "c"(msr) : "memory");
+  return ((uint64_t)high << 32) | low;
+}
+
+/* FIXME: Use __wrmsr builtin? */
+static inline void wrmsr(uint64_t msr, uint64_t val) {
+  uint32_t low = val & 0xFFFFFFFF;
+  uint32_t high = val >> 32;
+  asm volatile("wrmsr" : : "c"(msr), "a"(low), "d"(high) : "memory");
 }
 
 void serial_init(void) {
@@ -178,9 +195,17 @@ void enter_user_mode(void) {
                : "rax", "memory");
 }
 
+void enable_syscall_sysret(void) {
+  /* NOTE: Without this, syscall and sysret trigger #UD */
+  uint64_t efer = rdmsr(MSR_EFER);
+  efer |= EFER_SCE;
+  wrmsr(MSR_EFER, efer);
+}
+
 void kern_start(void) {
   serial_init();
   serial_puts("hello world\n");
+  enable_syscall_sysret();
   serial_putu32((uint32_t)USER_OFFSET);
   ata_pio_read(USER_LBA, USER_SECTORS, (uint32_t *)USER_OFFSET);
   serial_puts("user load done\n");
