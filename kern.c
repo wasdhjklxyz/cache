@@ -29,6 +29,8 @@
 #define MSR_STAR 0xC0000081
 #define MSR_LSTAR 0xC0000082
 #define MSR_SFMASK 0xC0000084
+#define MSR_GS_BASE 0xC0000101
+#define MSR_KERN_GS_BASE 0xC0000102
 #define EFER_SCE (1 << 0)  // Syscall extensions
 #define SFMASK_IF (1 << 9) // Interrupts
 
@@ -60,6 +62,13 @@ struct idtr {
 } __attribute__((packed));
 
 struct idt_gate idt[0x16] = {0};
+
+static struct {
+  uint64_t user_rsp;
+  uint64_t kern_rsp;
+} __attribute__((aligned(16))) swapgs_data;
+
+static uint8_t syscall_stack[0x1000] __attribute__((aligned(16))); // 4KB
 
 static inline void outb(uint16_t port, uint8_t val) {
   asm volatile("outb %0, %1" : : "a"(val), "Nd"(port));
@@ -219,6 +228,12 @@ void enter_user_mode(void) {
  *  CPL = 3                          # Now in user mode
  */
 void enable_syscall_sysret(void) {
+  swapgs_data.kern_rsp = (uint64_t)&syscall_stack[0x2000];
+  swapgs_data.user_rsp = 0; // Will be set on syscall entry
+
+  wrmsr(MSR_GS_BASE, (uint64_t)&swapgs_data);
+  wrmsr(MSR_KERN_GS_BASE, (uint64_t)&swapgs_data);
+
   uint64_t efer = rdmsr(MSR_EFER);
   efer |= EFER_SCE;
   wrmsr(MSR_EFER, efer);
@@ -233,7 +248,7 @@ void enable_syscall_sysret(void) {
   wrmsr(MSR_SFMASK, SFMASK_IF);
 }
 
-void syscall_entry(void) { serial_puts("syscall!!!!!"); }
+void syscall_dispatch(void) { serial_puts("syscall!!!!!"); }
 
 void kern_start(void) {
   serial_init();
