@@ -40,10 +40,12 @@ user.bin: user.elf
 	objcopy -O binary -j .text -j .rodata -j .data $< $@
 
 disk.img: boot.bin kern.bin user.bin
+	# FIXME: Dogshit why we calculating this twice??
+	$(eval KERN_SECTORS := $(shell echo $$(( ($$(stat -f%z kern.bin 2>/dev/null || stat -c%s kern.bin) + 511) / 512 ))))
 	dd if=/dev/zero of=$@ bs=512 count=2048
 	dd if=boot.bin of=$@ bs=512 count=1 conv=notrunc
 	dd if=kern.bin of=$@ bs=512 seek=1 conv=notrunc
-	dd if=user.bin of=$@ bs=512 seek=2 conv=notrunc
+	dd if=user.bin of=$@ bs=512 seek=$$(($(KERN_SECTORS)+1)) conv=notrunc
 
 qemu: disk.img
 	qemu-system-x86_64 -s -S -drive file=$<,format=raw -m 1G -no-reboot -nographic
