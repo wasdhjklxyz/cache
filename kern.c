@@ -251,7 +251,11 @@ void enable_syscall_sysret(void) {
   wrmsr(MSR_SFMASK, SFMASK_IF);
 }
 
-void syscall_dispatch(void) { serial_puts("syscall!!!!!"); }
+long syscall_dispatch(long num, long arg1, long arg2, long arg3, long arg4,
+                      long arg5) {
+  serial_puts("syscall!!!!!");
+  return num;
+}
 
 void kern_start(void) {
   serial_init();
