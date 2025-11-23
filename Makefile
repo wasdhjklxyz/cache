@@ -24,7 +24,7 @@ kern_entry.o: kern_entry.asm
 kern.o: kern.c user.bin
 	# FIXME: Dogshit. Why calculate this again
 	$(eval USER_SECTORS := $(shell echo $$(( ($$(stat -f%z user.bin 2>/dev/null || stat -c%s user.bin) + 511) / 512 ))))
-	gcc -DUSER_OFFSET=$(USER_OFFSET) -DUSER_LBA=$(USER_LBA) -DUSER_SECTORS=$(USER_SECTORS) -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
+	gcc -DUSER_OFFSET=$(USER_OFFSET) -DUSER_LBA=$(USER_LBA) -DUSER_SECTORS=$(USER_SECTORS) -Werror -Wextra -Wall -fno-stack-protector -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
 
 kern.elf: kern_entry.o kern.o
 	ld -m elf_x86_64 -Ttext $(KERN_OFFSET) -o $@ $^
