@@ -165,9 +165,12 @@ void ata_pio_read(uint32_t lba, uint8_t sectors, uint32_t *buf) {
   outb(ATA_IO + 7, 0x20);                        // READ SECTORS command
 
   for (uint32_t i = 0; i < sectors; i++) {
-    while (!(inb(ATA_IO + 7) & 0x80)); // Wait for drive to be ready
-    for (int j = 0; j < 256; j++) {    // Read 256 words (1 sector)
-      buf[i * 256 + j] = inl(ATA_IO);
+    uint8_t status;
+    do {
+      status = inb(ATA_IO + 7);
+    } while ((status & 0x80) || !(status & 0x08)); // Wait for drive to be ready
+    for (int j = 0; j < 128; j++) { // Read 128 dwords (1 sector)
+      buf[i * 128 + j] = inl(ATA_IO);
     }
   }
 }
