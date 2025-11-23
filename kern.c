@@ -225,7 +225,7 @@ void enable_syscall_sysret(void) {
 
   uint64_t star = 0;
   star |= ((uint64_t)KERN_CODE_SEL << 32);
-  star |= ((uint64_t)(USER_CODE_SEL - 16) << 48);
+  star |= ((uint64_t)((USER_CODE_SEL & ~3) - 16) << 48); // ~3 to remove RPL
   wrmsr(MSR_STAR, star);
 
   wrmsr(MSR_LSTAR, (uint64_t)syscall_entry);
