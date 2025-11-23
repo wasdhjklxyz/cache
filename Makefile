@@ -6,7 +6,9 @@
 
 # FIXME: Fuck these stupid fucking stupid fuck magic numbers
 KERN_OFFSET := 0x7E00
-USER_OFFSET := 0x100000
+
+# FIXME: Number came out of my ass
+USER_OFFSET := 0x700000
 
 # FIXME: Fucking sucks
 USER_LBA    := 32
