@@ -4,22 +4,25 @@
 # SPDX-License-Identifier: BSD-2-Clause
 #
 
+# FIXME: Fuck these stupid fucking stupid fuck magic numbers
 KERN_OFFSET := 0x7E00
-USER_OFFSET := 0xFE00
+USER_OFFSET := 0x100000
+
+# FIXME: Fucking sucks
+USER_LBA    := 32
+#$(eval USER_SECTORS := $(shell echo $$(( ($$(stat -f%z user.bin 2>/dev/null || stat -c%s user.bin) + 511) / 512 ))))
 
 boot.bin: boot.asm kern.bin user.bin
 	$(eval KERN_SECTORS := $(shell echo $$(( ($$(stat -f%z kern.bin 2>/dev/null || stat -c%s kern.bin) + 511) / 512 ))))
-	$(eval USER_SECTORS := $(shell echo $$(( ($$(stat -f%z user.bin 2>/dev/null || stat -c%s user.bin) + 511) / 512 ))))
-	nasm -f bin \
-		-DKERN_OFFSET=$(KERN_OFFSET) -DKERN_SECTORS=$(KERN_SECTORS) \
-		-DUSER_OFFSET=$(USER_OFFSET) -DUSER_SECTORS=$(USER_SECTORS) \
-		$< -o $@
+	nasm -f bin -DKERN_OFFSET=$(KERN_OFFSET) -DKERN_SECTORS=$(KERN_SECTORS) $< -o $@
 
 kern_entry.o: kern_entry.asm
 	nasm -f elf64 $< -o $@
 
-kern.o: kern.c
-	gcc -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
+kern.o: kern.c user.bin
+	# FIXME: Dogshit. Why calculate this again
+	$(eval USER_SECTORS := $(shell echo $$(( ($$(stat -f%z user.bin 2>/dev/null || stat -c%s user.bin) + 511) / 512 ))))
+	gcc -DUSER_OFFSET=$(USER_OFFSET) -DUSER_LBA=$(USER_LBA) -DUSER_SECTORS=$(USER_SECTORS) -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
 
 kern.elf: kern_entry.o kern.o
 	ld -m elf_x86_64 -Ttext $(KERN_OFFSET) -o $@ $^
@@ -45,7 +48,7 @@ disk.img: boot.bin kern.bin user.bin
 	dd if=/dev/zero of=$@ bs=512 count=2048
 	dd if=boot.bin of=$@ bs=512 count=1 conv=notrunc
 	dd if=kern.bin of=$@ bs=512 seek=1 conv=notrunc
-	dd if=user.bin of=$@ bs=512 seek=$$(($(KERN_SECTORS)+1)) conv=notrunc
+	dd if=user.bin of=$@ bs=512 seek=$(USER_LBA) conv=notrunc
 
 qemu: disk.img
 	qemu-system-x86_64 -s -S -drive file=$<,format=raw -m 1G -no-reboot -nographic

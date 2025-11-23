@@ -89,7 +89,7 @@ check_disk_read_exts:
     mov   ah, 0x41
     mov   bx, 0x55AA ; Magic
     int   0x13
-    jnc   load_all_shit
+    jnc   load_kern
     mov   si, str_error_bios_isr_13_41
     jmp   error
 
@@ -98,24 +98,16 @@ check_disk_read_exts:
 ;; load the kernel. We do this before switching to protected mode since we'll
 ;; lose access to the BIOS ISRs.
 ;;
-load_all_shit:
+load_kern:
     mov   si, dap.kern_code
-    call  load_shit
-    mov   si, dap.user_code
-    call  load_shit
-    jmp   enter_protected_mode
-
-load_shit:
     mov   ah, 0x42
     mov   cx, 3
   .loop:
     int   0x13
-    jnc   .done
+    jnc   enter_protected_mode
     loop  .loop
     mov   si, str_error_bios_isr_13_42
     jmp   error
-  .done:
-    ret
 
 ;;
 ;; Now that we have taken advantage of the BIOS ISRs, we enter protected mode.
@@ -215,13 +207,6 @@ dap:
     dw    KERN_OFFSET
     dw    0
     dq    1
-    align 4
-  .user_code:
-    db    0x10, 0x00
-    dw    USER_SECTORS ; FIXME: Not confirmed to fit in 2 bytes...
-    dw    USER_OFFSET
-    dw    0
-    dq    2
 
 str_error_bios_isr_13_41:
     db    0x0D, 0x0A, "Error: BIOS INT 13h AH=41h: Extensions not supported", 0

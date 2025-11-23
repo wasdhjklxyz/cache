@@ -5,9 +5,11 @@
  */
 
 #define COM1 0x3F8
+#define ATA_IO 0x1F0
 
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
+typedef unsigned int uint32_t;
 
 static inline void outb(uint16_t port, uint8_t val) {
   asm volatile("outb %0, %1" : : "a"(val), "Nd"(port));
@@ -16,6 +18,12 @@ static inline void outb(uint16_t port, uint8_t val) {
 static inline uint8_t inb(uint16_t port) {
   uint8_t ret;
   asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
+  return ret;
+}
+
+static inline uint16_t inw(uint16_t port) {
+  uint16_t ret;
+  asm volatile("inw %1, %0" : "=a"(ret) : "Nd"(port));
   return ret;
 }
 
@@ -41,8 +49,28 @@ void serial_puts(const char *str) {
   }
 }
 
+void ata_pio_read(uint32_t lba, uint8_t sectors, uint16_t *buf) {
+  while (inb(ATA_IO + 7) & 0x80); // Wait for drive to be ready
+
+  outb(ATA_IO + 2, sectors);                     // Sector count
+  outb(ATA_IO + 3, (uint8_t)lba);                // LBA low
+  outb(ATA_IO + 4, (uint8_t)(lba >> 8));         // LBA mid
+  outb(ATA_IO + 5, (uint8_t)(lba >> 16));        // LBA high
+  outb(ATA_IO + 6, 0xE0 | ((lba >> 24) & 0x0F)); // Drive/head
+  outb(ATA_IO + 7, 0x20);                        // READ SECTORS command
+
+  for (uint32_t i = 0; i < sectors; i++) {
+    while (!(inb(ATA_IO + 7) & 0x80)); // Wait for drive to be ready
+    for (int j = 0; j < 256; j++) {    // Read 256 words (1 sector)
+      buf[i * 256 + j] = inw(ATA_IO);
+    }
+  }
+}
+
 void kern_start(void) {
   serial_init();
   serial_puts("hello world\n");
+  ata_pio_read(USER_LBA, USER_SECTORS, (uint16_t *)USER_OFFSET);
+  serial_puts("user load done\n");
   while (1) asm volatile("hlt");
 }
