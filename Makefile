@@ -28,7 +28,7 @@ disk.img: boot.bin kern.bin
 	dd if=kern.bin of=$@ bs=512 seek=1 conv=notrunc
 
 qemu: disk.img
-	qemu-system-x86_64 -s -S -drive file=$<,format=raw -serial stdio -m 1M -no-reboot
+	qemu-system-x86_64 -s -S -drive file=$<,format=raw -serial stdio -m 1G -no-reboot
 
 clean:
 	rm -f samples/*.out samples/*.log *.bin *.img *.o *.elf
