@@ -16,8 +16,11 @@ kern_entry.o: kern_entry.asm
 kern.o: kern.c
 	gcc -masm=intel -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
 
-kern.bin: kern_entry.o kern.o
-	ld -m elf_x86_64 -Ttext $(KERN_OFFSET) --oformat binary -o $@ $^
+kern.elf: kern_entry.o kern.o
+	ld -m elf_x86_64 -Ttext $(KERN_OFFSET) -o $@ $^
+
+kern.bin: kern.elf
+	objcopy -O binary -j .text -j .rodata -j .data $< $@
 
 disk.img: boot.bin kern.bin
 	dd if=/dev/zero of=$@ bs=512 count=2048
@@ -28,4 +31,4 @@ qemu: disk.img
 	qemu-system-x86_64 -s -S -drive file=$<,format=raw -serial stdio -m 1M -no-reboot
 
 clean:
-	rm -f samples/*.out samples/*.log *.bin *.img *.o
+	rm -f samples/*.out samples/*.log *.bin *.img *.o *.elf
