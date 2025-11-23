@@ -14,7 +14,7 @@ kern_entry.o: kern_entry.asm
 	nasm -f elf64 $< -o $@
 
 kern.o: kern.c
-	gcc -masm=intel -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
+	gcc -ffreestanding -nostdlib -m64 -O0 -g -c $< -o $@
 
 kern.elf: kern_entry.o kern.o
 	ld -m elf_x86_64 -Ttext $(KERN_OFFSET) -o $@ $^

@@ -5,7 +5,7 @@
  */
 
 void kern_start(void) {
-  asm volatile("mov rax, 0xDEADBEEF12345678");
+  asm volatile("movq $0xDEADBEEF12345678, %rax");
   while (1) {
   }
 }
