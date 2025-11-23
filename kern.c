@@ -36,9 +36,9 @@ static inline uint8_t inb(uint16_t port) {
   return ret;
 }
 
-static inline uint16_t inw(uint16_t port) {
-  uint16_t ret;
-  asm volatile("inw %1, %0" : "=a"(ret) : "Nd"(port));
+static inline uint32_t inl(uint16_t port) {
+  uint32_t ret;
+  asm volatile("inl %1, %0" : "=a"(ret) : "Nd"(port));
   return ret;
 }
 
@@ -80,7 +80,7 @@ void serial_putu32(uint32_t val) {
   serial_puts(str);
 }
 
-void ata_pio_read(uint32_t lba, uint8_t sectors, uint16_t *buf) {
+void ata_pio_read(uint32_t lba, uint8_t sectors, uint32_t *buf) {
   while (inb(ATA_IO + 7) & 0x80); // Wait for drive to be ready
 
   outb(ATA_IO + 2, sectors);                     // Sector count
@@ -93,7 +93,7 @@ void ata_pio_read(uint32_t lba, uint8_t sectors, uint16_t *buf) {
   for (uint32_t i = 0; i < sectors; i++) {
     while (!(inb(ATA_IO + 7) & 0x80)); // Wait for drive to be ready
     for (int j = 0; j < 256; j++) {    // Read 256 words (1 sector)
-      buf[i * 256 + j] = inw(ATA_IO);
+      buf[i * 256 + j] = inl(ATA_IO);
     }
   }
 }
@@ -107,7 +107,7 @@ void kern_start(void) {
   serial_init();
   serial_puts("hello world\n");
   serial_putu32((uint32_t)USER_OFFSET);
-  ata_pio_read(USER_LBA, USER_SECTORS, (uint16_t *)USER_OFFSET);
+  ata_pio_read(USER_LBA, USER_SECTORS, (uint32_t *)USER_OFFSET);
   serial_puts("user load done\n");
   setup_user_pdte();
   serial_puts("user pdte done\n");
