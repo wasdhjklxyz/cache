@@ -8,7 +8,7 @@
 KERN_OFFSET := 0x7E00
 
 # FIXME: Number came out of my ass
-USER_OFFSET := 0x700000
+USER_OFFSET := 0x600000
 
 # FIXME: Fucking sucks
 USER_LBA    := 32
