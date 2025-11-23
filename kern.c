@@ -253,7 +253,14 @@ void enable_syscall_sysret(void) {
 
 long syscall_dispatch(long num, long arg1, long arg2, long arg3, long arg4,
                       long arg5) {
+  (void)arg2;
+  (void)arg3;
+  (void)arg4;
+  (void)arg5;
   serial_puts("syscall!!!!!");
+  serial_putu64(num);
+  serial_putu64(arg1);
+  serial_puts("!!!!!llacsys");
   return num;
 }
 
