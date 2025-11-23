@@ -23,11 +23,34 @@
 #define USER_STACK (USER_OFFSET + 0x100000)
 #define USER_CODE_SEL (0x18 | 3) // RPL=3 (FIXME: Should use gdt_sel.inc btw)
 #define USER_DATA_SEL (0x20 | 3) // RPL=3 (FIXME: Should use gdt_sel.inc btw)
+#define KERN_CODE_SEL 0x08
 
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
 typedef unsigned long uint64_t;
+
+// #PF -> 0x0E
+// #GP -> 0x0D
+// #NP -> 0x0B
+// #SS -> 0x0C
+// #TS -> 0x0A
+struct idt_gate {
+  uint16_t offset_1;       // offset bits 0..15
+  uint16_t selector;       // a code segment selector in GDT or LDT
+  uint8_t ist;             // bits 0..2 holds Interrupt Stack Table offset
+  uint8_t type_attributes; // gate type, dpl, and p fields
+  uint16_t offset_2;       // offset bits 16..31
+  uint32_t offset_3;       // offset bits 32..63
+  uint32_t zero;           // reserved
+};
+
+struct idtr {
+  uint16_t limit;
+  uint64_t base;
+} __attribute__((packed));
+
+struct idt_gate idt[0x16] = {0};
 
 static inline void outb(uint16_t port, uint8_t val) {
   asm volatile("outb %0, %1" : : "a"(val), "Nd"(port));
@@ -83,6 +106,22 @@ void serial_putu32(uint32_t val) {
   serial_puts(str);
 }
 
+void serial_putu64(uint64_t val) {
+  int i;
+  uint8_t n;
+  char str[19];
+
+  str[0] = '0';
+  str[1] = 'x';
+  for (i = 15; i >= 0; i--, val >>= 4) {
+    n = val & 0xF;
+    str[i + 2] = n < 10 ? n + '0' : n + 'A' - 10;
+  }
+  str[18] = '\n';
+
+  serial_puts(str);
+}
+
 void ata_pio_read(uint32_t lba, uint8_t sectors, uint32_t *buf) {
   while (inb(ATA_IO + 7) & 0x80); // Wait for drive to be ready
 
@@ -104,6 +143,21 @@ void ata_pio_read(uint32_t lba, uint8_t sectors, uint32_t *buf) {
 void setup_user_pdte(void) {
   uint64_t *pdt = (uint64_t *)PDT_ADDR;
   pdt[PDTE_USER] |= PTT_US;
+}
+
+void isr(void) { serial_puts("ISR!!!!!!!!!!!1!\n"); }
+
+void setup_idt(void) {
+  uint64_t pf_isr = (uint64_t)isr;
+  idt[0x0E].offset_1 = pf_isr & 0xFFFF;
+  idt[0x0E].offset_2 = pf_isr & 0xFFFF0000;
+  idt[0x0E].offset_3 = pf_isr & 0xFFFF00000000;
+  idt[0x0E].selector = KERN_CODE_SEL;
+  idt[0x0E].ist = 0;                // Interrupt stack table not used
+  idt[0x0E].type_attributes = 0xCE; // P=1, DPL=11, 64-bit interrupt gate
+  idt[0x0E].zero = 0;
+  struct idtr idtr = {.limit = sizeof(idt) - 1, .base = (uint64_t)&idt};
+  asm volatile("lidt %0" : : "m"(idtr));
 }
 
 void enter_user_mode(void) {
@@ -132,6 +186,12 @@ void kern_start(void) {
   serial_puts("user load done\n");
   setup_user_pdte();
   serial_puts("user pdte done\n");
-  enter_user_mode();
+  setup_idt();
+  serial_puts("IDT setup\n");
+  volatile uint64_t *fuck = (uint64_t *)0xDEADBEEF;
+  uint64_t shit = *fuck;
+  serial_puts("erm\n");
+  (void)shit;
+  // enter_user_mode();
   while (1) asm volatile("hlt");
 }
