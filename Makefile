@@ -53,7 +53,8 @@ disk.img: boot.bin kern.bin user.bin
 	dd if=user.bin of=$@ bs=512 seek=$(USER_LBA) conv=notrunc
 
 qemu: disk.img
-	qemu-system-x86_64 -s -S -drive file=$<,format=raw -m 1G -no-reboot -nographic
+	qemu-system-x86_64 -s -S -drive file=$<,format=raw -m 1G -no-reboot -nographic \
+		-d cpu_reset,int -D qemu.log
 
 clean:
 	rm -f samples/*.out samples/*.log *.bin *.img *.o *.elf
