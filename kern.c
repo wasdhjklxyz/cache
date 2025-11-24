@@ -195,7 +195,7 @@ void setup_idt(void) {
   for (int i = 0; i < 256; i++) {
     idt[i].offset_1 = isr & 0xFFFF;
     idt[i].offset_2 = (isr >> 16) & 0xFFFF;
-    idt[i].offset_3 = (isr >> 32) & 0xFFFFFFFF;
+    idt[i].offset_3 = (isr >> 32);
     idt[i].selector = KERN_CODE_SEL;
     idt[i].ist = 0;                // Interrupt stack table not used
     idt[i].type_attributes = 0x8E; // P=1, DPL=0, 64-bit interrupt gate
