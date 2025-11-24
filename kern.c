@@ -34,6 +34,11 @@
 #define EFER_SCE (1 << 0)  // Syscall extensions
 #define SFMASK_IF (1 << 9) // Interrupts
 
+// #define PIC_MASTER_CMD 0x20
+// #define PIC_SLAVE_CMD 0xA0
+#define PIC_MASTER_DATA 0x21
+#define PIC_SLAVE_DATA 0xA1
+
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
@@ -264,9 +269,15 @@ long syscall_dispatch(long num, long arg1, long arg2, long arg3, long arg4,
   return num;
 }
 
+void disable_pic(void) {
+  outb(PIC_MASTER_DATA, 0xFF);
+  outb(PIC_SLAVE_DATA, 0xFF);
+}
+
 void kern_start(void) {
   serial_init();
   serial_puts("hello world\n");
+  disable_pic();
   enable_syscall_sysret();
   serial_putu32((uint32_t)USER_OFFSET);
   ata_pio_read(USER_LBA, USER_SECTORS, (uint32_t *)USER_OFFSET);
