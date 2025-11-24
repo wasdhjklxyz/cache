@@ -39,6 +39,16 @@
 #define PIC_MASTER_DATA 0x21
 #define PIC_SLAVE_DATA 0xA1
 
+#define SEG_G 0x08
+#define SEG_DB 0x04
+#define SEG_L 0x02
+#define SEG_P 0x80
+#define SEG_DPL3 0x60
+#define SEG_S 0x10
+#define SEG_E 0x08
+#define SEG_DC 0x04 // Data: Segment grows down, Code -> Exec <= RPL
+#define SEG_RW 0x02
+
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
@@ -75,6 +85,50 @@ static struct {
 
 static uint8_t syscall_stack[0x1000] __attribute__((aligned(16))); // 4KB
 
+/*
+static struct {
+  uint32_t io_map_base;
+  uint32_t r5;
+  uint64_t r4;
+  uint64_t r3;
+  uint64_t ist7;
+  uint64_t ist6;
+  uint64_t ist5;
+  uint64_t ist4;
+  uint64_t ist3;
+  uint64_t ist2;
+  uint64_t ist1;
+  uint64_t r2;
+  uint64_t r1;
+  uint64_t rsp2;
+  uint64_t rsp1;
+  uint64_t rsp0;
+  uint64_t r0;
+} __attribute__((aligned(16))) tss;
+*/
+
+struct gdt_ent {
+  uint16_t limit;
+  uint16_t base0;
+  uint8_t base1;
+  uint8_t access;
+  uint8_t flags_limit;
+  uint8_t base2;
+} __attribute__((packed));
+
+struct gdtr {
+  uint16_t limit;
+  uint64_t base;
+} __attribute__((packed));
+
+static struct {
+  struct gdt_ent null;
+  struct gdt_ent kern_code;
+  struct gdt_ent kern_data;
+  struct gdt_ent user_data;
+  struct gdt_ent user_code;
+} __attribute__((packed, aligned(16))) gdt = {0};
+
 static inline void outb(uint16_t port, uint8_t val) {
   asm volatile("outb %0, %1" : : "a"(val), "Nd"(port));
 }
@@ -103,6 +157,10 @@ static inline void wrmsr(uint64_t msr, uint64_t val) {
   uint32_t low = val & 0xFFFFFFFF;
   uint32_t high = val >> 32;
   asm volatile("wrmsr" : : "c"(msr), "a"(low), "d"(high) : "memory");
+}
+
+static inline void lgdt(const struct gdtr *gdtr_ptr) {
+  asm volatile("lgdt %0" : : "m"(*gdtr_ptr) : "memory");
 }
 
 void serial_init(void) {
@@ -279,9 +337,53 @@ void disable_pic(void) {
   outb(PIC_SLAVE_DATA, 0xFF);
 }
 
+void set_gdt_ent(struct gdt_ent *ent, uint64_t base, uint32_t limit,
+                 uint8_t flags, uint8_t access) {
+  ent->limit = (uint16_t)limit;
+  ent->base0 = (uint16_t)base;
+  ent->base1 = (uint8_t)(base >> 16);
+  ent->access = access;
+  ent->flags_limit = ((flags & 0xF) << 4) | ((limit >> 16) & 0x00FF);
+  ent->base2 = (uint8_t)(base >> 24);
+}
+
+void setup_gdt(void) {
+  // TODO: bootloader already "presaved" us a spot to put the TSS in
+
+  /*
+  uint64_t base = (uint64_t)&tss;
+  uint64_t limit = sizeof(tss) - 1;
+
+  struct tss_sel {
+    uint64_t reserved;
+    uint64_t base1;
+    uint8_t base2;
+    uint8_t flags;
+    uint8_t limit1;
+    uint8_t access_byte;
+    uint8_t base3;
+    uint16_t base4;
+    uint16_t limit2;
+  };
+  */
+
+  set_gdt_ent(&gdt.kern_code, 0, 0x000FFFFF, SEG_G | SEG_L,
+              SEG_P | SEG_S | SEG_E | SEG_RW);
+  set_gdt_ent(&gdt.kern_data, 0, 0x000FFFFF, SEG_G | SEG_DB,
+              SEG_P | SEG_S | SEG_RW);
+  set_gdt_ent(&gdt.user_data, 0, 0x000FFFFF, SEG_G | SEG_DB,
+              SEG_P | SEG_DPL3 | SEG_S | SEG_RW);
+  set_gdt_ent(&gdt.user_code, 0, 0x000FFFFF, SEG_G | SEG_L,
+              SEG_P | SEG_DPL3 | SEG_S | SEG_E | SEG_RW);
+
+  struct gdtr gdtr = {.limit = sizeof(gdt) - 1, .base = (uint64_t)&gdt};
+  lgdt(&gdtr);
+}
+
 void kern_start(void) {
   serial_init();
   serial_puts("hello world\n");
+  setup_gdt();
   disable_pic();
   enable_syscall_sysret();
   serial_putu32((uint32_t)USER_OFFSET);
