@@ -66,7 +66,7 @@ struct idtr {
   uint64_t base;
 } __attribute__((packed));
 
-struct idt_gate idt[0x16] = {0};
+struct idt_gate idt[256] = {0};
 
 static struct {
   uint64_t user_rsp;
@@ -185,17 +185,22 @@ void setup_user_pdte(void) {
   pdt[PDTE_USER] |= PTT_US;
 }
 
-void isr(void) { serial_puts("ISR!!!!!!!!!!!1!\n"); }
+void generic_isr(void) {
+  serial_puts("ISR!!!!!!!!!!!1!\n");
+  while (1) asm volatile("hlt");
+}
 
 void setup_idt(void) {
-  uint64_t pf_isr = (uint64_t)isr;
-  idt[0x0E].offset_1 = pf_isr & 0xFFFF;
-  idt[0x0E].offset_2 = (pf_isr >> 16) & 0xFFFF;
-  idt[0x0E].offset_3 = (pf_isr >> 32) & 0xFFFF;
-  idt[0x0E].selector = KERN_CODE_SEL;
-  idt[0x0E].ist = 0;                // Interrupt stack table not used
-  idt[0x0E].type_attributes = 0xCE; // P=1, DPL=11, 64-bit interrupt gate
-  idt[0x0E].zero = 0;
+  uint64_t isr = (uint64_t)generic_isr;
+  for (int i = 0; i < 256; i++) {
+    idt[i].offset_1 = isr & 0xFFFF;
+    idt[i].offset_2 = (isr >> 16) & 0xFFFF;
+    idt[i].offset_3 = (isr >> 32) & 0xFFFFFFFF;
+    idt[i].selector = KERN_CODE_SEL;
+    idt[i].ist = 0;                // Interrupt stack table not used
+    idt[i].type_attributes = 0x8E; // P=1, DPL=0, 64-bit interrupt gate
+    idt[i].zero = 0;
+  }
   struct idtr idtr = {.limit = sizeof(idt) - 1, .base = (uint64_t)&idt};
   asm volatile("lidt %0" : : "m"(idtr));
 }
